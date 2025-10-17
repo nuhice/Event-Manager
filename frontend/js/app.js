@@ -141,6 +141,7 @@ const App = {
         });
     },
 
+
     updateNavigation: function() {
         const nav = document.getElementById('main-nav');
         if (this.isAuthenticated) {
@@ -205,6 +206,7 @@ const App = {
         console.log('Home page loaded');
     },
 
+
     initLoginPage: function() {
         const form = document.getElementById('login-form');
         if (form) {
@@ -252,6 +254,7 @@ const App = {
             });
         });
     },
+
 
     initEventForm: function(mode) {
         const form = document.getElementById('event-form');

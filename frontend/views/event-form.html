@@ -1,0 +1,101 @@
+<section class="form-section">
+    <div class="container">
+        <div class="form-container" style="max-width: 700px;">
+            <h2>Add New Event</h2>
+            <form id="event-form">
+                <div class="form-group">
+                    <label for="event-name">Event Name</label>
+                    <input type="text" id="event-name" name="event-name" required placeholder="Enter event name">
+                </div>
+                
+                <div class="form-group">
+                    <label for="event-description">Description</label>
+                    <textarea id="event-description" name="event-description" rows="4" required placeholder="Enter event description"></textarea>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="event-date">Event Date</label>
+                            <input type="date" id="event-date" name="event-date" required>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="event-time">Event Time</label>
+                            <input type="time" id="event-time" name="event-time" required>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="venue">Venue</label>
+                    <select id="venue" name="venue" required>
+                        <option value="">Select Venue</option>
+                        <option value="1">Convention Center, New York</option>
+                        <option value="2">Grand Hotel, Chicago</option>
+                        <option value="3">Central Park, Los Angeles</option>
+                        <option value="4">Innovation Hub, San Francisco</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="category">Category</label>
+                    <select id="category" name="category" required>
+                        <option value="">Select Category</option>
+                        <option value="1">Technology</option>
+                        <option value="2">Business</option>
+                        <option value="3">Music</option>
+                        <option value="4">Art</option>
+                        <option value="5">Food & Beverage</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="speaker">Speaker</label>
+                    <select id="speaker" name="speaker" required>
+                        <option value="">Select Speaker</option>
+                        <option value="1">John Doe</option>
+                        <option value="2">Sarah Smith</option>
+                        <option value="3">Mike Johnson</option>
+                        <option value="4">Emily Davis</option>
+                    </select>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="capacity">Capacity</label>
+                            <input type="number" id="capacity" name="capacity" required placeholder="Maximum attendees">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="price">Ticket Price</label>
+                            <input type="number" id="price" name="price" step="0.01" required placeholder="0.00">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="image-url">Image URL</label>
+                    <input type="url" id="image-url" name="image-url" placeholder="https://example.com/image.jpg">
+                </div>
+
+                <div class="form-group">
+                    <label for="status">Status</label>
+                    <select id="status" name="status" required>
+                        <option value="active">Active</option>
+                        <option value="pending">Pending</option>
+                        <option value="cancelled">Cancelled</option>
+                    </select>
+                </div>
+
+                <div class="form-group" style="display: flex; gap: 10px;">
+                    <button type="submit" class="btn-primary" style="width: auto; flex: 1;">Save Event</button>
+                    <button type="button" class="btn-secondary" style="width: auto; flex: 1;" onclick="Router.navigate('events')">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>

@@ -1,0 +1,70 @@
+<?php
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
+require_once __DIR__ . '/vendor/autoload.php';
+
+Flight::before('start', function() {
+    header('Access-Control-Allow-Origin: *');
+    header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
+    header('Access-Control-Allow-Headers: Content-Type, Authorization');
+    
+    if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+        http_response_code(200);
+        exit();
+    }
+});
+
+require_once __DIR__ . '/rest/routes/UserRoutes.php';
+require_once __DIR__ . '/rest/routes/EventRoutes.php';
+require_once __DIR__ . '/rest/routes/LocationRoutes.php';
+require_once __DIR__ . '/rest/routes/BookingRoutes.php';
+require_once __DIR__ . '/rest/routes/ContactRoutes.php';
+
+$userRoutes = new UserRoutes();
+$userRoutes->registerRoutes();
+
+$eventRoutes = new EventRoutes();
+$eventRoutes->registerRoutes();
+
+$locationRoutes = new LocationRoutes();
+$locationRoutes->registerRoutes();
+
+$bookingRoutes = new BookingRoutes();
+$bookingRoutes->registerRoutes();
+
+$contactRoutes = new ContactRoutes();
+$contactRoutes->registerRoutes();
+
+Flight::route('GET /', function() {
+    Flight::json([
+        'success' => true,
+        'message' => 'Event Manager API',
+        'version' => '1.0.0',
+        'endpoints' => [
+            'users' => '/users',
+            'events' => '/events',
+            'locations' => '/locations',
+            'bookings' => '/bookings',
+            'contacts' => '/contacts'
+        ]
+    ], 200);
+});
+
+Flight::map('notFound', function() {
+    Flight::json([
+        'success' => false,
+        'error' => 'Route not found'
+    ], 404);
+});
+
+Flight::map('error', function($e) {
+    Flight::json([
+        'success' => false,
+        'error' => $e->getMessage(),
+        'trace' => $e->getTraceAsString() 
+    ], 500);
+});
+
+Flight::start();
+?>

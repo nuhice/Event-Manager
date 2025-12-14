@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../../services/UserService.php';
+require_once __DIR__ . '/../middleware/AuthMiddleware.php';
 
 class UserRoutes {
     private $userService;
@@ -9,6 +10,64 @@ class UserRoutes {
     }
 
     public function registerRoutes() {
+        $userService = $this->userService;
+        
+    Flight::route('POST /login', function() use ($userService) {
+        error_log("===== LOGIN ATTEMPT =====");
+        try {
+            $data = ValidationMiddleware::validateRequest(['email', 'password']);
+            error_log("Received data: " . json_encode($data));
+            
+            $user = $userService->getUserByEmail($data['email']);
+            error_log("User found: " . ($user ? 'YES' : 'NO'));
+            
+            if(!$user || !password_verify($data['password'], $user['password'])){
+                error_log("Login failed: Invalid credentials");
+                Flight::json(['error' => 'Invalid email or password'], 401);
+                return;
+            }
+            
+            error_log("Password verified successfully");
+            
+            $payload = [
+                'id' => $user['user_id'],
+                'email' => $user['email'],
+                'role' => $user['role_id'] == 1 ? 'admin' : 'user',
+                'iat' => time(),
+                'exp' => time() + 3600
+            ];
+            
+            error_log("Creating JWT...");
+            $jwt = \Firebase\JWT\JWT::encode($payload, Database::JWT_SECRET, 'HS256');
+            error_log("JWT created successfully");
+            
+            Flight::json([
+                'success' => true,
+                'token' => $jwt,
+                'user' => [
+                    'id' => $user['user_id'],
+                    'name' => $user['name'],
+                    'email' => $user['email'],
+                    'role' => $user['role_id'] == 1 ? 'admin' : 'user'
+                ]
+            ]);
+            error_log("Login successful response sent");
+        } catch (Exception $e) {
+            error_log("LOGIN ERROR: " . $e->getMessage());
+            Flight::json(['error' => $e->getMessage()], 500);
+        }
+    });
+
+    Flight::route('POST /register', function() use ($userService) {
+        try {
+            $data = ValidationMiddleware::validateRequest(['name', 'email', 'password']);
+            $userService->createUser($data);
+            Flight::json(['success' => true, 'message' => 'User registered successfully'], 201);
+        } catch (Exception $e) {
+            Flight::json(['success' => false, 'error' => $e->getMessage()], 400);
+        }
+    });
+
     /**
      * @OA\Get(
      *   path="/users",
@@ -17,9 +76,11 @@ class UserRoutes {
      *   @OA\Response(response=200, description="List of users")
      * )
      */
-    Flight::route('GET /users', function() {
+    Flight::route('GET /users', function() use ($userService) {
+            (new AuthMiddleware())->validate('admin');
+
             try {
-                $users = $this->userService->getAllUsers();
+                $users = $userService->getAllUsers();
                 Flight::json([
                     'success' => true,
                     'data' => $users
@@ -47,9 +108,10 @@ class UserRoutes {
      *   @OA\Response(response=404, description="Not found")
      * )
      */
-    Flight::route('GET /users/@id', function($id) {
+    Flight::route('GET /users/@id', function($id) use ($userService) {
+            (new AuthMiddleware())->validate();
             try {
-                $user = $this->userService->getUserById($id);
+                $user = $userService->getUserById($id);
                 Flight::json([
                     'success' => true,
                     'data' => $user
@@ -84,10 +146,10 @@ class UserRoutes {
      *   @OA\Response(response=400, description="Validation error")
      * )
      */
-    Flight::route('POST /users', function() {
+    Flight::route('POST /users', function() use ($userService) {
             try {
                 $data = Flight::request()->data->getData();
-                $this->userService->createUser($data);
+                $userService->createUser($data);
                 Flight::json([
                     'success' => true,
                     'message' => 'User created successfully'
@@ -118,10 +180,11 @@ class UserRoutes {
      *   @OA\Response(response=404, description="Not found")
      * )
      */
-    Flight::route('PUT /users/@id', function($id) {
+    Flight::route('PUT /users/@id', function($id) use ($userService) {
+            (new AuthMiddleware())->validate('admin');
             try {
                 $data = Flight::request()->data->getData();
-                $this->userService->updateUser($id, $data);
+                $userService->updateUser($id, $data);
                 Flight::json([
                     'success' => true,
                     'message' => 'User updated successfully'
@@ -145,9 +208,10 @@ class UserRoutes {
      *   @OA\Response(response=404, description="Not found")
      * )
      */
-    Flight::route('DELETE /users/@id', function($id) {
+    Flight::route('DELETE /users/@id', function($id) use ($userService) {
+            (new AuthMiddleware())->validate('admin');
             try {
-                $this->userService->deleteUser($id);
+                $userService->deleteUser($id);
                 Flight::json([
                     'success' => true,
                     'message' => 'User deleted successfully'

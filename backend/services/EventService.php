@@ -25,6 +25,7 @@ class EventService {
         $this->validateRequired($data, ['title', 'start_date']);
         
         $this->validateDate($data['start_date'], 'start_date');
+        
         if (isset($data['end_date'])) {
             $this->validateDate($data['end_date'], 'end_date');
             $this->validateDateRange($data['start_date'], $data['end_date']);

@@ -2,11 +2,11 @@ const Router = {
     routes: {},
     currentPage: null,
 
-    register: function(path, handler) {
+    register: function (path, handler) {
         this.routes[path] = handler;
     },
 
-    navigate: function(path) {
+    navigate: function (path) {
         if (this.routes[path]) {
             this.currentPage = path;
             this.routes[path]();
@@ -16,8 +16,9 @@ const Router = {
         }
     },
 
-    loadView: function(viewName, callback) {
-        fetch('views/' + viewName + '.html')
+    loadView: function (viewName, callback) {
+        const timestamp = new Date().getTime();
+        fetch('views/' + viewName + '.html?t=' + timestamp)
             .then(response => response.text())
             .then(html => {
                 document.getElementById('app-content').innerHTML = html;
@@ -29,7 +30,7 @@ const Router = {
             });
     },
 
-    init: function() {
+    init: function () {
         window.addEventListener('popstate', () => {
             const path = window.location.hash.slice(1) || 'home';
             this.navigate(path);

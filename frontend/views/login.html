@@ -2,27 +2,24 @@
     <div class="container">
         <div class="form-container">
             <h2>Login to Event Manager</h2>
-            <form id="login-form">
+            <form id="login-form" autocomplete="off">
                 <div class="form-group">
                     <label for="email">Email Address</label>
-                    <input type="email" id="email" name="email" required placeholder="Enter your email">
+                    <input type="email" id="email" name="email" required placeholder="Enter your email"
+                        autocomplete="off">
                 </div>
                 <div class="form-group">
                     <label for="password">Password</label>
-                    <input type="password" id="password" name="password" required placeholder="Enter your password">
+                    <input type="password" id="password" name="password" required placeholder="Enter your password"
+                        autocomplete="new-password">
                 </div>
-                <div class="form-group">
-                    <label for="role">Login As</label>
-                    <select id="role" name="role" required>
-                        <option value="attendee">Attendee (Regular User)</option>
-                        <option value="admin">Admin</option>
-                    </select>
-                </div>
+
                 <div class="form-group">
                     <button type="submit" class="btn-primary">Login</button>
                 </div>
                 <div class="text-center" style="margin-top: 20px;">
-                    <p>Don't have an account? <a href="#" data-page="register" style="color: #e83e8c;">Register here</a></p>
+                    <p>Don't have an account? <a href="#" data-page="register" style="color: #e83e8c;">Register here</a>
+                    </p>
                 </div>
             </form>
         </div>

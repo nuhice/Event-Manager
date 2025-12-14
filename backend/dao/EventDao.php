@@ -3,7 +3,7 @@ require_once __DIR__ . '/BaseDao.php';
 
 class EventDAO extends BaseDao {
     public function __construct() {
-        parent::__construct('events');
+        parent::__construct('events', 'event_id');
     }
 
     public function getByName($name) {

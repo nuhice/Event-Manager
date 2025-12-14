@@ -5,6 +5,7 @@ class Database {
    private static $username = 'root';
    private static $password = '';
    private static $connection = null;
+   public const JWT_SECRET = 'some_secret_key';
 
 
    public static function connect() {

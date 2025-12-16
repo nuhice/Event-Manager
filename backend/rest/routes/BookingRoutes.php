@@ -1,11 +1,14 @@
 <?php
 require_once __DIR__ . '/../../services/BookingService.php';
+require_once __DIR__ . '/../middleware/AuthMiddleware.php';
 class BookingRoutes {
     private $bookingService;
     public function __construct() {
         $this->bookingService = new BookingService();
     }
     public function registerRoutes() {
+        $bookingService = $this->bookingService;
+        
     /**
      * @OA\Get(
      *   path="/bookings",
@@ -14,9 +17,18 @@ class BookingRoutes {
      *   @OA\Response(response=200, description="List of bookings")
      * )
      */
-    Flight::route('GET /bookings', function() {
+    Flight::route('GET /bookings', function() use ($bookingService) {
             try {
-                $bookings = $this->bookingService->getAllBookings();
+                (new AuthMiddleware())->validate();
+                
+                $user = Flight::get('user');
+                
+                if ($user->role == 'admin') {
+                    $bookings = $bookingService->getAllBookings();
+                } else {
+                    $bookings = $bookingService->getBookingsByUserId($user->id);
+                }
+                
                 Flight::json([
                     'success' => true,
                     'data' => $bookings
@@ -38,9 +50,15 @@ class BookingRoutes {
      *   @OA\Response(response=404, description="Not found")
      * )
      */
-    Flight::route('GET /bookings/@id', function($id) {
+    Flight::route('GET /bookings/@id', function($id) use ($bookingService) {
+            (new AuthMiddleware())->validate();
             try {
-                $booking = $this->bookingService->getBookingById($id);
+                $user = Flight::get('user');
+                $booking = $bookingService->getBookingById($id);
+                if ($user->role != 'admin' && $booking['user_id'] != $user->id) {
+                    Flight::json(['error' => 'Forbidden'], 403);
+                    return;
+                }
                 Flight::json([
                     'success' => true,
                     'data' => $booking
@@ -70,10 +88,12 @@ class BookingRoutes {
      *   @OA\Response(response=400, description="Validation error")
      * )
      */
-    Flight::route('POST /bookings', function() {
+    Flight::route('POST /bookings', function() use ($bookingService) {
+            (new AuthMiddleware())->validate();
             try {
                 $data = Flight::request()->data->getData();
-                $this->bookingService->createBooking($data);
+                $data['user_id'] = Flight::get('user')->id;
+                $bookingService->createBooking($data);
                 Flight::json([
                     'success' => true,
                     'message' => 'Booking created successfully'
@@ -103,10 +123,18 @@ class BookingRoutes {
      *   @OA\Response(response=404, description="Not found")
      * )
      */
-    Flight::route('PUT /bookings/@id', function($id) {
+    Flight::route('PUT /bookings/@id', function($id) use ($bookingService) {
+            (new AuthMiddleware())->validate();
             try {
+                $user = Flight::get('user');
+                $booking = $bookingService->getBookingById($id);
+                if ($user->role != 'admin' && $booking['user_id'] != $user->id) {
+                    Flight::json(['error' => 'Forbidden'], 403);
+                    return;
+                }
+
                 $data = Flight::request()->data->getData();
-                $this->bookingService->updateBooking($id, $data);
+                $bookingService->updateBooking($id, $data);
                 Flight::json([
                     'success' => true,
                     'message' => 'Booking updated successfully'
@@ -129,9 +157,17 @@ class BookingRoutes {
      *   @OA\Response(response=404, description="Not found")
      * )
      */
-    Flight::route('DELETE /bookings/@id', function($id) {
+    Flight::route('DELETE /bookings/@id', function($id) use ($bookingService) {
+            (new AuthMiddleware())->validate();
             try {
-                $this->bookingService->deleteBooking($id);
+                $user = Flight::get('user');
+                $booking = $bookingService->getBookingById($id);
+                if ($user->role != 'admin' && $booking['user_id'] != $user->id) {
+                    Flight::json(['error' => 'Forbidden'], 403);
+                    return;
+                }
+
+                $bookingService->deleteBooking($id);
                 Flight::json([
                     'success' => true,
                     'message' => 'Booking deleted successfully'

@@ -3,7 +3,7 @@ require_once __DIR__ . '/BaseDao.php';
 
 class LocationDAO extends BaseDao {
     public function __construct() {
-        parent::__construct('locations');
+        parent::__construct('locations', 'location_id');
     }
 
     public function getByCity($city) {

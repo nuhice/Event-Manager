@@ -9,7 +9,6 @@ class ContactRoutes {
     }
 
     public function registerRoutes() {
-        // KLJUČNO: Dodaj reference na service prije route-ova
         $contactService = $this->contactService;
 
         /**

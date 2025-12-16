@@ -1,11 +1,14 @@
 <?php
 require_once __DIR__ . '/../../services/EventService.php';
+require_once __DIR__ . '/../middleware/AuthMiddleware.php';
 class EventRoutes {
     private $eventService;
     public function __construct() {
         $this->eventService = new EventService();
     }
     public function registerRoutes() {
+        $eventService = $this->eventService;
+        
     /**
      * @OA\Get(
      *   path="/events",
@@ -14,9 +17,9 @@ class EventRoutes {
      *   @OA\Response(response=200, description="List of events")
      * )
      */
-    Flight::route('GET /events', function() {
+    Flight::route('GET /events', function() use ($eventService) {
             try {
-                $events = $this->eventService->getAllEvents();
+                $events = $eventService->getAllEvents();
                 Flight::json([
                     'success' => true,
                     'data' => $events
@@ -38,9 +41,9 @@ class EventRoutes {
      *   @OA\Response(response=404, description="Not found")
      * )
      */
-    Flight::route('GET /events/@id', function($id) {
+    Flight::route('GET /events/@id', function($id) use ($eventService) {
             try {
-                $event = $this->eventService->getEventById($id);
+                $event = $eventService->getEventById($id);
                 Flight::json([
                     'success' => true,
                     'data' => $event
@@ -73,20 +76,27 @@ class EventRoutes {
      *   @OA\Response(response=400, description="Validation error")
      * )
      */
-    Flight::route('POST /events', function() {
+    Flight::route('POST /events', function() use ($eventService) {
             try {
+                (new AuthMiddleware())->validate();
                 $data = Flight::request()->data->getData();
-                $this->eventService->createEvent($data);
-                Flight::json([
+                $data['organizer_id'] = Flight::get('user')->id;
+                $eventService->createEvent($data);
+                
+                http_response_code(201);
+                header('Content-Type: application/json');
+                echo json_encode([
                     'success' => true,
                     'message' => 'Event created successfully'
-                ], 201);
+                ]);
             } catch (Exception $e) {
                 $statusCode = strpos($e->getMessage(), 'already exists') !== false ? 409 : 400;
-                Flight::json([
+                http_response_code($statusCode);
+                header('Content-Type: application/json');
+                echo json_encode([
                     'success' => false,
                     'error' => $e->getMessage()
-                ], $statusCode);
+                ]);
             }
         });
     /**
@@ -107,10 +117,18 @@ class EventRoutes {
      *   @OA\Response(response=404, description="Not found")
      * )
      */
-    Flight::route('PUT /events/@id', function($id) {
+    Flight::route('PUT /events/@id', function($id) use ($eventService) {
+            (new AuthMiddleware())->validate();
             try {
+                $user = Flight::get('user');
+                $event = $eventService->getEventById($id);
+                if ($user->role != 'admin' && $event['organizer_id'] != $user->id) {
+                    Flight::json(['error' => 'Forbidden'], 403);
+                    return;
+                }
+
                 $data = Flight::request()->data->getData();
-                $this->eventService->updateEvent($id, $data);
+                $eventService->updateEvent($id, $data);
                 Flight::json([
                     'success' => true,
                     'message' => 'Event updated successfully'
@@ -133,9 +151,17 @@ class EventRoutes {
      *   @OA\Response(response=404, description="Not found")
      * )
      */
-    Flight::route('DELETE /events/@id', function($id) {
+    Flight::route('DELETE /events/@id', function($id) use ($eventService) {
+            (new AuthMiddleware())->validate();
             try {
-                $this->eventService->deleteEvent($id);
+                $user = Flight::get('user');
+                $event = $eventService->getEventById($id);
+                if ($user->role != 'admin' && $event['organizer_id'] != $user->id) {
+                    Flight::json(['error' => 'Forbidden'], 403);
+                    return;
+                }
+
+                $eventService->deleteEvent($id);
                 Flight::json([
                     'success' => true,
                     'message' => 'Event deleted successfully'

@@ -3,7 +3,7 @@ require_once __DIR__ . '/BaseDao.php';
 
 class UserDAO extends BaseDao {
     public function __construct() {
-        parent::__construct('users');
+        parent::__construct('users', 'user_id');
     }
 
     public function getByEmail($email) {

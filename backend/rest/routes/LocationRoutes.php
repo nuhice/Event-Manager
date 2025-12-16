@@ -1,11 +1,14 @@
 <?php
 require_once __DIR__ . '/../../services/LocationService.php';
+require_once __DIR__ . '/../middleware/AuthMiddleware.php';
 class LocationRoutes {
     private $locationService;
     public function __construct() {
         $this->locationService = new LocationService();
     }
     public function registerRoutes() {
+        $locationService = $this->locationService;
+        
     /**
      * @OA\Get(
      *   path="/locations",
@@ -14,9 +17,9 @@ class LocationRoutes {
      *   @OA\Response(response=200, description="List of locations")
      * )
      */
-    Flight::route('GET /locations', function() {
+    Flight::route('GET /locations', function() use ($locationService) {
             try {
-                $locations = $this->locationService->getAllLocations();
+                $locations = $locationService->getAllLocations();
                 Flight::json([
                     'success' => true,
                     'data' => $locations
@@ -38,9 +41,9 @@ class LocationRoutes {
      *   @OA\Response(response=404, description="Not found")
      * )
      */
-    Flight::route('GET /locations/@id', function($id) {
+    Flight::route('GET /locations/@id', function($id) use ($locationService) {
             try {
-                $location = $this->locationService->getLocationById($id);
+                $location = $locationService->getLocationById($id);
                 Flight::json([
                     'success' => true,
                     'data' => $location
@@ -70,10 +73,11 @@ class LocationRoutes {
      *   @OA\Response(response=400, description="Validation error")
      * )
      */
-    Flight::route('POST /locations', function() {
+    Flight::route('POST /locations', function() use ($locationService) {
+            (new AuthMiddleware())->validate('admin');
             try {
                 $data = Flight::request()->data->getData();
-                $this->locationService->createLocation($data);
+                $locationService->createLocation($data);
                 Flight::json([
                     'success' => true,
                     'message' => 'Location created successfully'
@@ -103,10 +107,11 @@ class LocationRoutes {
      *   @OA\Response(response=404, description="Not found")
      * )
      */
-    Flight::route('PUT /locations/@id', function($id) {
+    Flight::route('PUT /locations/@id', function($id) use ($locationService) {
+            (new AuthMiddleware())->validate('admin');
             try {
                 $data = Flight::request()->data->getData();
-                $this->locationService->updateLocation($id, $data);
+                $locationService->updateLocation($id, $data);
                 Flight::json([
                     'success' => true,
                     'message' => 'Location updated successfully'
@@ -129,9 +134,10 @@ class LocationRoutes {
      *   @OA\Response(response=404, description="Not found")
      * )
      */
-    Flight::route('DELETE /locations/@id', function($id) {
+    Flight::route('DELETE /locations/@id', function($id) use ($locationService) {
+            (new AuthMiddleware())->validate('admin');
             try {
-                $this->locationService->deleteLocation($id);
+                $locationService->deleteLocation($id);
                 Flight::json([
                     'success' => true,
                     'message' => 'Location deleted successfully'

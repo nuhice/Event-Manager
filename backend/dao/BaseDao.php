@@ -3,12 +3,14 @@ require_once __DIR__ . '/../config/config.php';
 
 class BaseDao {
    protected $table;
-   protected $connection;
+   public $connection;
+   protected $primaryKey;
 
 
-   public function __construct($table) {
+   public function __construct($table, $primaryKey = 'id') {
        $this->table = $table;
        $this->connection = Database::connect();
+       $this->primaryKey = $primaryKey;
    }
 
 
@@ -20,7 +22,7 @@ class BaseDao {
 
 
    public function getById($id) {
-       $stmt = $this->connection->prepare("SELECT * FROM " . $this->table . " WHERE id = :id");
+       $stmt = $this->connection->prepare("SELECT * FROM " . $this->table . " WHERE " . $this->primaryKey . " = :id");
        $stmt->bindParam(':id', $id);
        $stmt->execute();
        return $stmt->fetch();
@@ -42,7 +44,7 @@ class BaseDao {
            $fields .= "$key = :$key, ";
        }
        $fields = rtrim($fields, ", ");
-       $sql = "UPDATE " . $this->table . " SET $fields WHERE id = :id";
+       $sql = "UPDATE " . $this->table . " SET $fields WHERE " . $this->primaryKey . " = :id";
        $stmt = $this->connection->prepare($sql);
        $data['id'] = $id;
        return $stmt->execute($data);
@@ -50,7 +52,7 @@ class BaseDao {
 
 
    public function delete($id) {
-       $stmt = $this->connection->prepare("DELETE FROM " . $this->table . " WHERE id = :id");
+       $stmt = $this->connection->prepare("DELETE FROM " . $this->table . " WHERE " . $this->primaryKey . " = :id");
        $stmt->bindParam(':id', $id);
        return $stmt->execute();
    }

@@ -13,22 +13,16 @@ class UserRoutes {
         $userService = $this->userService;
         
     Flight::route('POST /login', function() use ($userService) {
-        error_log("===== LOGIN ATTEMPT =====");
         try {
             $data = ValidationMiddleware::validateRequest(['email', 'password']);
-            error_log("Received data: " . json_encode($data));
-            
+
             $user = $userService->getUserByEmail($data['email']);
-            error_log("User found: " . ($user ? 'YES' : 'NO'));
-            
+
             if(!$user || !password_verify($data['password'], $user['password'])){
-                error_log("Login failed: Invalid credentials");
                 Flight::json(['error' => 'Invalid email or password'], 401);
                 return;
             }
-            
-            error_log("Password verified successfully");
-            
+
             $payload = [
                 'id' => $user['user_id'],
                 'email' => $user['email'],
@@ -36,11 +30,9 @@ class UserRoutes {
                 'iat' => time(),
                 'exp' => time() + 3600
             ];
-            
-            error_log("Creating JWT...");
-            $jwt = \Firebase\JWT\JWT::encode($payload, Database::JWT_SECRET, 'HS256');
-            error_log("JWT created successfully");
-            
+
+            $jwt = \Firebase\JWT\JWT::encode($payload, Database::getJwtSecret(), 'HS256');
+
             Flight::json([
                 'success' => true,
                 'token' => $jwt,
@@ -51,9 +43,7 @@ class UserRoutes {
                     'role' => $user['role_id'] == 1 ? 'admin' : 'user'
                 ]
             ]);
-            error_log("Login successful response sent");
         } catch (Exception $e) {
-            error_log("LOGIN ERROR: " . $e->getMessage());
             Flight::json(['error' => $e->getMessage()], 500);
         }
     });

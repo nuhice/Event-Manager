@@ -15,4 +15,5 @@ class LocationDAO extends BaseDao {
         return $stmt->fetchAll();
     }
 }
+    
 ?>

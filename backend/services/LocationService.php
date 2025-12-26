@@ -32,10 +32,11 @@ class LocationService {
             throw new Exception("Capacity must be a positive number");
         }
 
-        if (!$this->locationDao->insert($data)) {
+        $insertId = $this->locationDao->insert($data);
+        if (!$insertId) {
             throw new Exception("Failed to create location");
         }
-        return true;
+        return $insertId;
     }
 
     public function updateLocation($id, $data) {

@@ -1,13 +1,28 @@
 const ApiService = {
-    apiUrl: 'http://localhost/eventmanager/backend',
+    apiUrl: window.API_CONFIG?.baseUrl || 'http://localhost/eventmanager/backend',
+
+    async parseResponse(response) {
+        const contentType = response.headers.get('content-type') || '';
+        if (contentType.includes('application/json')) {
+            try {
+                return await response.json();
+            } catch (e) {
+                return await response.text();
+            }
+        }
+        return await response.text();
+    },
 
     async get(endpoint) {
         try {
             const response = await fetch(`${this.apiUrl}/${endpoint}`, {
                 headers: AuthService.getAuthHeader()
             });
-            const data = await response.json();
-            if (!response.ok) throw new Error(data.error || 'Request failed');
+            const data = await this.parseResponse(response);
+            if (!response.ok) {
+                const msg = (typeof data === 'string') ? data : (data && data.error) || 'Request failed';
+                throw new Error(msg);
+            }
             return data;
         } catch (error) {
             throw error;
@@ -24,8 +39,11 @@ const ApiService = {
                 },
                 body: JSON.stringify(body)
             });
-            const data = await response.json();
-            if (!response.ok) throw new Error(data.error || 'Request failed');
+            const data = await this.parseResponse(response);
+            if (!response.ok) {
+                const msg = (typeof data === 'string') ? data : (data && data.error) || 'Request failed';
+                throw new Error(msg);
+            }
             return data;
         } catch (error) {
             throw error;
@@ -42,8 +60,11 @@ const ApiService = {
                 },
                 body: JSON.stringify(body)
             });
-            const data = await response.json();
-            if (!response.ok) throw new Error(data.error || 'Request failed');
+            const data = await this.parseResponse(response);
+            if (!response.ok) {
+                const msg = (typeof data === 'string') ? data : (data && data.error) || 'Request failed';
+                throw new Error(msg);
+            }
             return data;
         } catch (error) {
             throw error;
@@ -56,8 +77,11 @@ const ApiService = {
                 method: 'DELETE',
                 headers: AuthService.getAuthHeader()
             });
-            const data = await response.json();
-            if (!response.ok) throw new Error(data.error || 'Request failed');
+            const data = await this.parseResponse(response);
+            if (!response.ok) {
+                const msg = (typeof data === 'string') ? data : (data && data.error) || 'Request failed';
+                throw new Error(msg);
+            }
             return data;
         } catch (error) {
             throw error;

@@ -24,7 +24,7 @@ COPY . /var/www/html
 
 RUN composer install --no-dev --optimize-autoloader
 
-RUN sed -i '/<Directory \/var\/www\/>/,/<\/Directory>/ s/AllowOverride None/AllowOverride All/' /etc/apache2/apache2.conf
+COPY apache-config.conf /etc/apache2/sites-available/000-default.conf
 
 RUN a2enmod rewrite headers
 

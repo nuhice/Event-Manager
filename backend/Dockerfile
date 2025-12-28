@@ -24,15 +24,9 @@ COPY . /var/www/html
 
 RUN composer install --no-dev --optimize-autoloader
 
-RUN a2enmod rewrite
+RUN sed -i '/<Directory \/var\/www\/>/,/<\/Directory>/ s/AllowOverride None/AllowOverride All/' /etc/apache2/apache2.conf
 
-RUN echo '<Directory /var/www/html>\n\
-    Options Indexes FollowSymLinks\n\
-    AllowOverride All\n\
-    Require all granted\n\
-</Directory>' > /etc/apache2/conf-available/eventmanager.conf
-
-RUN a2enconf eventmanager
+RUN a2enmod rewrite headers
 
 RUN mkdir -p /var/www/html/logs && chmod 777 /var/www/html/logs
 

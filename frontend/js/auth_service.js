@@ -1,5 +1,5 @@
 const AuthService = {
-    apiUrl: 'http://localhost/eventmanager/backend',
+    apiUrl: window.API_CONFIG.baseUrl,
 
     async login(email, password) {
         try {

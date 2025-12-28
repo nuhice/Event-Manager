@@ -1,5 +1,5 @@
 const ApiService = {
-    apiUrl: window.API_CONFIG?.baseUrl || 'http://localhost/eventmanager/backend',
+    apiUrl: window.API_CONFIG.baseUrl,
 
     async parseResponse(response) {
         const contentType = response.headers.get('content-type') || '';

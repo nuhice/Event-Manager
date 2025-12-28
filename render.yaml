@@ -3,7 +3,8 @@ services:
   - type: web
     name: event-manager-backend
     env: docker
-    dockerfilePath: ./Dockerfile.backend
+    rootDir: backend
+    dockerfilePath: ./backend/Dockerfile
     envVars:
       - key: DATABASE_URL
         fromDatabase:

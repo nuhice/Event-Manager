@@ -37,7 +37,6 @@ class Database {
        if (isset($parsed['port'])) {
            self::$port = $parsed['port'];
        } else {
-           // Default port based on driver if not in URL
            self::$port = (self::$driver === 'pgsql') ? '5432' : '3306';
        }
        

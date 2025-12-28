@@ -57,6 +57,10 @@ class Database {
            try {
                $dsn = self::$driver . ":host=" . self::$host . ";port=" . self::$port . ";dbname=" . self::$dbName;
                
+               if (self::$driver === 'pgsql') {
+                    $dsn .= ";sslmode=require";
+               }
+               
                self::$connection = new PDO(
                    $dsn,
                    self::$username,
@@ -69,7 +73,10 @@ class Database {
                );
            } catch (PDOException $e) {
                error_log("Database connection failed: " . $e->getMessage());
-               die("Connection failed: " . $e->getMessage());
+               header('Content-Type: application/json');
+               http_response_code(500);
+               echo json_encode(['error' => "Database connection failed: " . $e->getMessage()]);
+               exit();
            }
        }
        return self::$connection;

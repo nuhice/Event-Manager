@@ -20,7 +20,7 @@ services:
     name: event-manager-frontend
     env: static
     rootDir: frontend
-    buildCommand: echo "window.ENV = { API_URL: '$API_URL' };" > env.js
+    buildCommand: sed -i "s|__API_URL_PLACEHOLDER__|$API_URL|g" index.html
     staticPublishPath: .
     routes:
       - type: rewrite

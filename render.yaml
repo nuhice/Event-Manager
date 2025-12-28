@@ -19,8 +19,9 @@ services:
   - type: web
     name: event-manager-frontend
     env: static
-    buildCommand: echo "No build needed"
-    staticPublishPath: ./frontend
+    rootDir: frontend
+    buildCommand: echo "window.ENV = { API_URL: '$API_URL' };" > env.js
+    staticPublishPath: .
     routes:
       - type: rewrite
         source: /*

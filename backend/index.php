@@ -44,6 +44,10 @@ $bookingRoutes->registerRoutes();
 $contactRoutes = new ContactRoutes();
 $contactRoutes->registerRoutes();
 
+require_once __DIR__ . '/rest/routes/SetupRoutes.php';
+$setupRoutes = new SetupRoutes();
+$setupRoutes->registerRoutes();
+
 Flight::route('GET /', function() {
     Flight::json([
         'success' => true,

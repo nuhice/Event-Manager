@@ -20,7 +20,7 @@ services:
     name: event-manager-frontend
     env: static
     rootDir: frontend
-    buildCommand: sed -i "s|__API_URL_PLACEHOLDER__|$API_URL|g" index.html
+    buildCommand: chmod +x build.sh && ./build.sh
     staticPublishPath: .
     routes:
       - type: rewrite

@@ -5,3 +5,5 @@ const API_CONFIG = {
 };
 
 window.API_CONFIG = API_CONFIG;
+console.log('API Config loaded:', API_CONFIG);
+console.log('Raw ENV:', window.ENV);

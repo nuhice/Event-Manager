@@ -1,9 +1,20 @@
 const API_CONFIG = {
-    baseUrl: (window.ENV && window.ENV.API_URL && window.ENV.API_URL !== '__API_URL_PLACEHOLDER__')
-        ? window.ENV.API_URL
-        : 'http://localhost/eventmanager/backend'
+    baseUrl: (function () {
+        const envUrl = (window.ENV && window.ENV.API_URL);
+        const isPlaceholder = envUrl === '__API_URL_PLACEHOLDER__';
+
+        if (envUrl && !isPlaceholder) {
+            return envUrl;
+        }
+
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+            return 'http://localhost/eventmanager/backend';
+        }
+
+        return 'https://event-manager-backend.onrender.com';
+    })()
 };
 
 window.API_CONFIG = API_CONFIG;
-console.log('API Config loaded:', API_CONFIG);
-console.log('Raw ENV:', window.ENV);
+console.log('API Config determined:', API_CONFIG);
+console.log('Hostname:', window.location.hostname);

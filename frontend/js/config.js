@@ -11,7 +11,8 @@ const API_CONFIG = {
             return 'http://localhost/eventmanager/backend';
         }
 
-        return 'https://event-manager-backend.onrender.com';
+        // 4. Fallback for production (Based on logs)
+        return 'https://event-manager-ek9w.onrender.com';
     })()
 };
 

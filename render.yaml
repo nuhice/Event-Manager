@@ -28,7 +28,7 @@ services:
         destination: /index.html
     envVars:
       - key: API_URL
-        value: https://event-manager-backend.onrender.com
+        value: https://event-manager-ek9w.onrender.com
 
 databases:
   - name: event-manager-db

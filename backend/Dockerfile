@@ -29,6 +29,7 @@ COPY apache-config.conf /etc/apache2/sites-available/000-default.conf
 RUN a2enmod rewrite headers
 
 RUN mkdir -p /var/www/html/logs && chmod 777 /var/www/html/logs
+RUN chown -R www-data:www-data /var/www/html
 
 EXPOSE 80
 

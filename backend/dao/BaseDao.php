@@ -34,7 +34,15 @@ class BaseDao {
        $placeholders = ":" . implode(", :", array_keys($data));
        $sql = "INSERT INTO " . $this->table . " ($columns) VALUES ($placeholders)";
        $stmt = $this->connection->prepare($sql);
-       return $stmt->execute($data);
+       $success = $stmt->execute($data);
+       if ($success) {
+           try {
+               return (int)$this->connection->lastInsertId();
+           } catch (Exception $e) {
+               return true;
+           }
+       }
+       return false;
    }
 
 

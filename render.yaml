@@ -1,0 +1,37 @@
+services:
+  # Backend PHP Service
+  - type: web
+    name: event-manager-backend
+    env: docker
+    rootDir: backend
+    dockerfilePath: ./backend/Dockerfile
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: event-manager-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: PHP_VERSION
+        value: "8.2"
+
+  # Frontend Static Site
+  - type: web
+    name: event-manager-frontend
+    env: static
+    rootDir: frontend
+    buildCommand: chmod +x build.sh && ./build.sh
+    staticPublishPath: .
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: API_URL
+        value: https://event-manager-ek9w.onrender.com
+
+databases:
+  - name: event-manager-db
+    databaseName: event_manager
+    user: event_manager_user
+    plan: free

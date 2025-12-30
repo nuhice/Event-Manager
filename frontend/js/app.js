@@ -168,8 +168,19 @@ const App = {
         if (form) {
             form.addEventListener('submit', async (e) => {
                 e.preventDefault();
-                const email = document.getElementById('email').value;
+                const email = document.getElementById('email').value.trim();
                 const password = document.getElementById('password').value;
+
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!email || !emailRegex.test(email)) {
+                    alert('Please enter a valid email');
+                const eventsTable = document.querySelector('.col-lg-6:first-child tbody');
+                const bookingsTable = document.querySelector('.col-lg-6:last-child tbody');
+                }
+                if (!password) {
+                    alert('Please enter your password');
+                    return;
+                }
 
                 try {
                     await AuthService.login(email, password);
@@ -201,6 +212,16 @@ const App = {
                     return;
                 }
 
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!name || !emailRegex.test(email)) {
+                    alert('Please enter a valid name and email');
+                    return;
+                }
+                if (password.length < 6) {
+                    alert('Password must be at least 6 characters');
+                    return;
+                }
+
                 try {
                     await AuthService.register(name, email, password);
                     alert('Registration successful! Please login.');
@@ -216,25 +237,21 @@ const App = {
         console.log('Dashboard loaded');
 
         try {
-            // Fetch stats (mocking for now as we don't have a stats endpoint)
-            // Ideally we should have an endpoint like /stats
-
-            const eventsRes = await ApiService.get('events');
-            const locationsRes = await ApiService.get('locations');
-            const bookingsRes = await ApiService.get('bookings');
+            const events = await EventService.getAll();
+            const locations = await LocationService.getAll();
+            const bookings = await BookingService.getAll();
 
             const statsCards = document.querySelectorAll('.stats-card h3');
             if (statsCards.length >= 3) {
-                statsCards[0].textContent = eventsRes.data.length || 0;
-                statsCards[1].textContent = locationsRes.data.length || 0;
-                statsCards[2].textContent = bookingsRes.data.length || 0;
+                statsCards[0].textContent = events.length || 0;
+                statsCards[1].textContent = locations.length || 0;
+                statsCards[2].textContent = bookings.length || 0;
             }
 
-            // Populate tables (simplified for now, just taking first few)
             const eventsTable = document.querySelector('.col-lg-6:first-child tbody');
-            if (eventsTable && eventsRes.data) {
+            if (eventsTable && events) {
                 eventsTable.innerHTML = '';
-                eventsRes.data.slice(0, 5).forEach(event => {
+                events.slice(0, 5).forEach(event => {
                     eventsTable.innerHTML += `
                         <tr>
                             <td>${event.title}</td>
@@ -246,9 +263,9 @@ const App = {
             }
 
             const bookingsTable = document.querySelector('.col-lg-6:last-child tbody');
-            if (bookingsTable && bookingsRes.data) {
+            if (bookingsTable && bookings) {
                 bookingsTable.innerHTML = '';
-                bookingsRes.data.slice(0, 5).forEach(booking => {
+                bookings.slice(0, 5).forEach(booking => {
                     bookingsTable.innerHTML += `
                         <tr>
                             <td>${booking.user_name}</td>
@@ -271,8 +288,7 @@ const App = {
         container.innerHTML = '<div class="col-12 text-center"><div class="loader" style="display:inline-block; position:relative;"></div></div>';
 
         try {
-            const response = await ApiService.get('events');
-            const events = response.data;
+            const events = await EventService.getAll();
             container.innerHTML = '';
 
             if (!events || events.length === 0) {
@@ -323,19 +339,18 @@ const App = {
             </div>
         `;
 
-        // Add event listeners
+        
         if (isAdmin) {
             div.querySelector('.btn-edit').addEventListener('click', (e) => {
                 e.preventDefault();
-                // TODO: Implement Edit
                 alert('Edit feature coming soon');
             });
             div.querySelector('.btn-delete').addEventListener('click', async (e) => {
                 e.preventDefault();
                 if (confirm('Delete this event?')) {
                     try {
-                        await ApiService.delete(`events/${event.event_id}`);
-                        this.initEventsPage(); // Reload
+                        await EventService.delete(event.event_id);
+                        this.initEventsPage();
                     } catch (err) {
                         alert(err.message);
                     }
@@ -350,11 +365,11 @@ const App = {
                     return;
                 }
 
-                try {
-                    await ApiService.post('bookings', {
-                        event_id: event.event_id,
-                        status: 'pending'
-                    });
+                    try {
+                        await BookingService.create({
+                            event_id: event.event_id,
+                            status: 'pending'
+                        });
                     alert('Booking confirmed!');
                 } catch (err) {
                     alert(err.message);
@@ -371,12 +386,10 @@ const App = {
         const title = document.querySelector('.form-container h2');
         const venueSelect = document.getElementById('venue');
 
-        // Load venues into dropdown
         await this.loadVenuesIntoSelect();
 
         if (mode === 'edit') {
             if (title) title.textContent = 'Edit Event';
-            // Mock data population
             setTimeout(() => {
                 document.getElementById('event-name').value = 'Tech Conference 2025';
                 document.getElementById('event-description').value = 'Join us for the biggest tech conference of the year.';
@@ -410,12 +423,15 @@ const App = {
                     capacity
                 };
 
-                try {
+                    try {
                     if (mode === 'edit') {
-                        // await ApiService.put(`events/${id}`, data);
                         alert('Edit not implemented yet');
                     } else {
-                        await ApiService.post('events', data);
+                        if (!title || !date || !time || !location_id || !capacity) {
+                            alert('Please fill all required event fields');
+                            return;
+                        }
+                        await EventService.create(data);
                         alert('Event created successfully!');
                         Router.navigate('events');
                     }
@@ -433,12 +449,10 @@ const App = {
             return;
         }
 
-        try {
+            try {
             console.log('Loading venues into select...');
-            const response = await ApiService.get('locations');
-            const venues = response.data;
+            const venues = await LocationService.getAll();
 
-            // Clear existing options except the first one
             venueSelect.innerHTML = '<option value="">Select Venue</option>';
 
             if (!venues || venues.length === 0) {
@@ -447,7 +461,6 @@ const App = {
                 return;
             }
 
-            // Add venues as options
             venues.forEach(venue => {
                 const option = document.createElement('option');
                 option.value = venue.location_id;
@@ -469,10 +482,8 @@ const App = {
         tbody.innerHTML = '<tr><td colspan="6" class="text-center">Loading...</td></tr>';
 
         try {
-            const response = await ApiService.get('locations');
-            const locations = response.data;
+            const locations = await LocationService.getAll();
 
-            // Store locations globally for inline handlers
             window.venueLocations = locations;
 
             tbody.innerHTML = '';
@@ -498,33 +509,20 @@ const App = {
                 tbody.appendChild(tr);
             });
 
-            // Wait a bit for DOM to be fully ready
             setTimeout(() => {
-                // Add event listener to the "Add New Venue" button
                 const addBtn = document.getElementById('add-venue-btn');
-                console.log('Looking for add button...');
-                console.log('Add button element:', addBtn);
-                console.log('All elements with id add-venue-btn:', document.querySelectorAll('#add-venue-btn'));
 
                 if (addBtn) {
-                    console.log('Add button FOUND! Adding click listener...');
                     addBtn.addEventListener('click', () => {
-                        console.log('>>> Add New Venue button CLICKED! <<<');
                         this.openVenueModal('add');
                     });
-                } else {
-                    console.error('ERROR: Add venue button NOT FOUND in DOM!');
-                    console.log('Entire page HTML:', document.getElementById('app-content').innerHTML.substring(0, 500));
                 }
 
-                // Check if modal exists
                 const modal = document.getElementById('venue-modal');
-                console.log('Checking for modal element:', modal);
                 if (!modal) {
                     console.error('ERROR: venue-modal NOT FOUND in DOM!');
                 }
 
-                // Set up modal form submission
                 this.setupVenueModalHandlers();
             }, 100);
 
@@ -532,6 +530,64 @@ const App = {
             console.error('Error in initVenuesPage:', error);
             tbody.innerHTML = `<tr><td colspan="6" class="text-danger">Error loading venues: ${error.message}</td></tr>`;
         }
+    },
+
+    openBookingModal: async function () {
+        const modal = document.getElementById('booking-modal');
+        const userSelect = document.getElementById('booking-user');
+        const eventSelect = document.getElementById('booking-event');
+
+        const events = await EventService.getAll();
+        const users = await UserService.getAll();
+
+        eventSelect.innerHTML = '<option value="">Select Event</option>';
+        events.forEach(ev => {
+            const opt = document.createElement('option');
+            opt.value = ev.event_id;
+            opt.textContent = `${ev.title} (${new Date(ev.start_date).toLocaleDateString()})`;
+            eventSelect.appendChild(opt);
+        });
+
+        userSelect.innerHTML = '';
+        users.forEach(u => {
+            const opt = document.createElement('option');
+            opt.value = u.user_id;
+            opt.textContent = `${u.name} <${u.email}>`;
+            userSelect.appendChild(opt);
+        });
+
+        modal.style.display = 'flex';
+    },
+
+    handleBookingSubmit: async function (e) {
+        e.preventDefault();
+        const userId = document.getElementById('booking-user').value;
+        const eventId = document.getElementById('booking-event').value;
+        const tickets = parseInt(document.getElementById('booking-tickets').value) || 1;
+        const status = document.getElementById('booking-status').value || 'pending';
+
+        if (!eventId) {
+            alert('Please select an event');
+            return false;
+        }
+
+        try {
+            const payload = {
+                event_id: parseInt(eventId),
+                tickets: tickets,
+                status: status
+            };
+            if (AuthService.isAdmin() && userId) payload.user_id = parseInt(userId);
+
+            await BookingService.create(payload);
+            alert('Booking created successfully');
+            document.getElementById('booking-modal').style.display = 'none';
+            document.getElementById('booking-form').reset();
+            await this.initBookingsPage();
+        } catch (err) {
+            alert(err.message);
+        }
+        return false;
     },
 
     editVenue: function (index) {
@@ -542,7 +598,7 @@ const App = {
     deleteVenue: async function (locationId) {
         if (confirm('Delete this venue?')) {
             try {
-                await ApiService.delete(`locations/${locationId}`);
+                await LocationService.delete(locationId);
                 this.initVenuesPage();
             } catch (err) {
                 alert(err.message);
@@ -571,23 +627,21 @@ const App = {
 
         console.log('Submitting venue data:', data);
 
-        try {
-            if (venueId) {
+            try {
+                if (venueId) {
                 console.log('Updating venue ID:', venueId);
-                await ApiService.put(`locations/${venueId}`, data);
+                await LocationService.update(venueId, data);
                 alert('Venue updated successfully!');
             } else {
                 console.log('Creating new venue');
-                const response = await ApiService.post('locations', data);
+                const response = await LocationService.create(data);
                 console.log('Create response:', response);
                 alert('Venue added successfully!');
             }
 
-            // Close and reset
             modal.style.display = 'none';
             form.reset();
 
-            // Reload venues
             console.log('Calling initVenuesPage to reload...');
             await this.initVenuesPage();
             console.log('Venues page reloaded');
@@ -600,7 +654,7 @@ const App = {
     },
 
     openVenueModal: function (mode, venue = null) {
-        console.log('openVenueModal called with mode:', mode);
+        try { this.setupVenueModalHandlers(); } catch (e) { }
         const modal = document.getElementById('venue-modal');
         console.log('Modal element:', modal);
         const modalTitle = document.getElementById('modal-title');
@@ -630,89 +684,62 @@ const App = {
     },
 
     setupVenueModalHandlers: function () {
-        // Only set up handlers once using a flag
         if (this._venueHandlersSetup) return;
         this._venueHandlersSetup = true;
-
         const modal = document.getElementById('venue-modal');
         const form = document.getElementById('venue-form');
         const cancelBtn = document.getElementById('cancel-btn');
         const self = this;
 
-        // Close modal on cancel
-        cancelBtn.addEventListener('click', () => {
-            console.log('Cancel clicked');
-            modal.style.display = 'none';
-            form.reset();
-        });
+        if (!modal || !form) {
+            this._venueHandlersSetup = false;
+            return;
+        }
 
-        // Close modal on clicking outside
+            if (cancelBtn) {
+            cancelBtn.addEventListener('click', () => {
+                modal.style.display = 'none';
+                form.reset();
+            });
+        }
+
         modal.addEventListener('click', (e) => {
             if (e.target === modal) {
-                console.log('Clicked outside modal');
                 modal.style.display = 'none';
                 form.reset();
             }
         });
 
-        // Handle form submission
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            console.log('Form submitted');
-
-            const venueId = document.getElementById('venue-id').value;
-            const name = document.getElementById('venue-name').value;
-            const address = document.getElementById('venue-address').value;
-            const city = document.getElementById('venue-city').value;
-            const capacity = document.getElementById('venue-capacity').value;
-
-            const data = {
-                name,
-                address,
-                city,
-                capacity: parseInt(capacity)
-            };
-
-            console.log('Submitting data:', data);
-
-            try {
-                if (venueId) {
-                    // Edit mode
-                    console.log('Updating venue:', venueId);
-                    await ApiService.put(`locations/${venueId}`, data);
-                    alert('Venue updated successfully!');
-                } else {
-                    // Add mode
-                    console.log('Creating new venue');
-                    await ApiService.post('locations', data);
-                    alert('Venue added successfully!');
-                }
-
-                // Close modal and reset form
-                modal.style.display = 'none';
-                form.reset();
-
-                // Reload venues
-                console.log('Reloading venues...');
-                await self.initVenuesPage();
-                console.log('Venues reloaded');
-            } catch (error) {
-                console.error('Error saving venue:', error);
-                alert('Error: ' + error.message);
-            }
-        });
+        if (typeof this.handleVenueSubmit === 'function') {
+            form.addEventListener('submit', (e) => this.handleVenueSubmit(e));
+        } else {
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const venueId = document.getElementById('venue-id').value;
+                const name = document.getElementById('venue-name').value;
+                const address = document.getElementById('venue-address').value;
+                const city = document.getElementById('venue-city').value;
+                const capacity = document.getElementById('venue-capacity').value;
+                const data = { name, address, city, capacity: parseInt(capacity) };
+                try {
+                    if (!form.checkValidity()) { form.reportValidity(); return; }
+                    if (venueId) await LocationService.update(venueId, data);
+                    else await LocationService.create(data);
+                    modal.style.display = 'none'; form.reset(); await self.initVenuesPage();
+                } catch (err) { alert('Error: ' + err.message); }
+            });
+        }
     },
 
 
     initMyBookingsPage: async function () {
         console.log('My Bookings page loaded');
-        const container = document.querySelector('.row'); // Assuming first row is container
+        const container = document.querySelector('.row')
         if (!container) return;
         container.innerHTML = '<div class="col-12 text-center"><div class="loader" style="display:inline-block; position:relative;"></div></div>';
 
         try {
-            const response = await ApiService.get('bookings');
-            const bookings = response.data;
+            const bookings = await BookingService.getAll();
             container.innerHTML = '';
 
             if (!bookings || bookings.length === 0) {
@@ -743,7 +770,7 @@ const App = {
                     e.preventDefault();
                     if (confirm('Cancel this booking?')) {
                         try {
-                            await ApiService.delete(`bookings/${booking.booking_id}`);
+                            await BookingService.delete(booking.booking_id);
                             this.initMyBookingsPage();
                         } catch (err) {
                             alert(err.message);
@@ -765,8 +792,7 @@ const App = {
         tbody.innerHTML = '<tr><td colspan="9" class="text-center">Loading...</td></tr>';
 
         try {
-            const response = await ApiService.get('bookings');
-            const bookings = response.data;
+            const bookings = await BookingService.getAll();
             tbody.innerHTML = '';
 
             if (!bookings || bookings.length === 0) {
@@ -795,7 +821,7 @@ const App = {
                     e.preventDefault();
                     if (confirm('Cancel this booking?')) {
                         try {
-                            await ApiService.delete(`bookings/${booking.booking_id}`);
+                            await BookingService.delete(booking.booking_id);
                             this.initBookingsPage();
                         } catch (err) {
                             alert(err.message);
@@ -807,6 +833,19 @@ const App = {
             });
         } catch (error) {
             tbody.innerHTML = `<tr><td colspan="9" class="text-danger">Error loading bookings: ${error.message}</td></tr>`;
+        }
+
+        const addBtn = document.getElementById('add-booking-btn');
+        if (addBtn) {
+            if (AuthService.isAdmin()) {
+                addBtn.style.display = 'inline-block';
+                addBtn.removeEventListener && addBtn.removeEventListener('click', this._addBookingHandler);
+                const handler = () => this.openBookingModal();
+                addBtn.addEventListener('click', handler);
+                this._addBookingHandler = handler;
+            } else {
+                addBtn.style.display = 'none';
+            }
         }
     }
 };

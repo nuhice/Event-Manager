@@ -44,50 +44,44 @@
     <div id="app-content">
     </div>
 
-    <!-- Venue Modal Form - Always in DOM -->
-    <div id="venue-modal"
-        onclick="if(event.target === this) { this.style.display='none'; document.getElementById('venue-form').reset(); }"
+
+    <div id="booking-modal"
+        onclick="if(event.target === this) { this.style.display='none'; document.getElementById('booking-form').reset(); }"
         style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
         <div
-            style="background: white; padding: 30px; border-radius: 8px; max-width: 500px; width: 90%; position: relative;">
-            <h3 id="modal-title" style="margin-top: 0; margin-bottom: 20px; color: #333;">Add New Venue</h3>
-            <form id="venue-form" onsubmit="return App.handleVenueSubmit(event);">
-                <input type="hidden" id="venue-id">
-
-                <div style="margin-bottom: 15px;">
-                    <label for="venue-name"
-                        style="display: block; margin-bottom: 5px; color: #555; font-weight: 500;">Venue Name *</label>
-                    <input type="text" id="venue-name" required
-                        style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box;">
+            style="background: white; padding: 30px; border-radius: 8px; max-width: 600px; width: 95%; position: relative;">
+            <h3 id="booking-modal-title" style="margin-top: 0; margin-bottom: 20px; color: #333;">Add Booking</h3>
+            <form id="booking-form" onsubmit="return App.handleBookingSubmit(event);">
+                <div style="margin-bottom:12px;">
+                    <label for="booking-user" style="display:block; margin-bottom:6px;">User</label>
+                    <select id="booking-user"
+                        style="width:100%; padding:8px; border:1px solid #ddd; border-radius:4px;"></select>
                 </div>
-
-                <div style="margin-bottom: 15px;">
-                    <label for="venue-address"
-                        style="display: block; margin-bottom: 5px; color: #555; font-weight: 500;">Address *</label>
-                    <input type="text" id="venue-address" required
-                        style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box;">
+                <div style="margin-bottom:12px;">
+                    <label for="booking-event" style="display:block; margin-bottom:6px;">Event</label>
+                    <select id="booking-event" required
+                        style="width:100%; padding:8px; border:1px solid #ddd; border-radius:4px;"></select>
                 </div>
-
-                <div style="margin-bottom: 15px;">
-                    <label for="venue-city"
-                        style="display: block; margin-bottom: 5px; color: #555; font-weight: 500;">City *</label>
-                    <input type="text" id="venue-city" required
-                        style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box;">
+                <div style="margin-bottom:12px;">
+                    <label for="booking-tickets" style="display:block; margin-bottom:6px;">Tickets</label>
+                    <input id="booking-tickets" type="number" min="1" value="1" required
+                        style="width:100%; padding:8px; border:1px solid #ddd; border-radius:4px;" />
                 </div>
-
-                <div style="margin-bottom: 20px;">
-                    <label for="venue-capacity"
-                        style="display: block; margin-bottom: 5px; color: #555; font-weight: 500;">Capacity *</label>
-                    <input type="number" id="venue-capacity" required min="1"
-                        style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box;">
+                <div style="margin-bottom:20px;">
+                    <label for="booking-status" style="display:block; margin-bottom:6px;">Status</label>
+                    <select id="booking-status"
+                        style="width:100%; padding:8px; border:1px solid #ddd; border-radius:4px;">
+                        <option value="pending">pending</option>
+                        <option value="confirmed">confirmed</option>
+                        <option value="cancelled">cancelled</option>
+                    </select>
                 </div>
-
-                <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                <div style="display:flex; gap:10px; justify-content:flex-end;">
                     <button type="button"
-                        onclick="document.getElementById('venue-modal').style.display='none'; document.getElementById('venue-form').reset();"
-                        style="padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;">Cancel</button>
+                        onclick="document.getElementById('booking-modal').style.display='none'; document.getElementById('booking-form').reset();"
+                        style="padding:10px 18px; background:#6c757d; color:#fff; border:none; border-radius:4px;">Cancel</button>
                     <button type="submit"
-                        style="padding: 10px 20px; background: #dc143c; color: white; border: none; border-radius: 4px; cursor: pointer;">Save</button>
+                        style="padding:10px 18px; background:#28a745; color:#fff; border:none; border-radius:4px;">Create</button>
                 </div>
             </form>
         </div>
@@ -114,9 +108,15 @@
 
     <script src="js/jquery-3.3.1.min.js"></script>
     <script src="js/bootstrap.min.js"></script>
+    <script>window.ENV = { API_URL: '__API_URL_PLACEHOLDER__' };</script>
+    <script src="js/config.js?v=10"></script>>
     <script src="js/router.js?v=3"></script>
     <script src="js/auth_service.js?v=3"></script>
     <script src="js/api_service.js?v=3"></script>
+    <script src="js/services/BookingService.js?v=1"></script>
+    <script src="js/services/EventService.js?v=1"></script>
+    <script src="js/services/LocationService.js?v=1"></script>
+    <script src="js/services/UserService.js?v=1"></script>
     <script src="js/app.js?v=8"></script>
 </body>
 

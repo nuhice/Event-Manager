@@ -1,23 +1,27 @@
 <?php
 error_reporting(E_ALL);
-ini_set('display_errors', 1);
+ini_set('display_errors', 0);
+ini_set('log_errors', 1);
+ini_set('error_log', __DIR__ . '/logs/php_errors.log');
 
 require_once __DIR__ . '/vendor/autoload.php';
 require_once __DIR__ . '/rest/middleware/ErrorMiddleware.php';
 require_once __DIR__ . '/rest/middleware/ValidationMiddleware.php';
 
-Flight::before('start', function() {
-    ErrorMiddleware::logRequest();
-    
-    header('Access-Control-Allow-Origin: *');
-    header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
-    header('Access-Control-Allow-Headers: Content-Type, Authorization');
-    
+    // Global preflight handler
     if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+        header('Access-Control-Allow-Origin: *');
+        header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
+        header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With');
         http_response_code(200);
         exit();
     }
-});
+    
+    header('Access-Control-Allow-Origin: *');
+    header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
+    header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With');
+    
+    ErrorMiddleware::logRequest();
 
 require_once __DIR__ . '/rest/routes/UserRoutes.php';
 require_once __DIR__ . '/rest/routes/EventRoutes.php';
@@ -39,6 +43,8 @@ $bookingRoutes->registerRoutes();
 
 $contactRoutes = new ContactRoutes();
 $contactRoutes->registerRoutes();
+
+
 
 Flight::route('GET /', function() {
     Flight::json([

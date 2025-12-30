@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../../services/BookingService.php';
 require_once __DIR__ . '/../middleware/AuthMiddleware.php';
+require_once __DIR__ . '/../middleware/ValidationMiddleware.php';
 class BookingRoutes {
     private $bookingService;
     public function __construct() {
@@ -91,8 +92,16 @@ class BookingRoutes {
     Flight::route('POST /bookings', function() use ($bookingService) {
             (new AuthMiddleware())->validate();
             try {
-                $data = Flight::request()->data->getData();
-                $data['user_id'] = Flight::get('user')->id;
+                // Validate required fields server-side
+                $data = ValidationMiddleware::validateRequest(['event_id']);
+                $currentUser = Flight::get('user');
+                // If admin and provided a user_id, allow creating booking for that user
+                if ($currentUser->role === 'admin' && isset($data['user_id']) && !empty($data['user_id'])) {
+                    // keep provided user_id (ensure it's integer)
+                    $data['user_id'] = (int)$data['user_id'];
+                } else {
+                    $data['user_id'] = $currentUser->id;
+                }
                 $bookingService->createBooking($data);
                 Flight::json([
                     'success' => true,

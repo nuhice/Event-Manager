@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../../services/EventService.php';
 require_once __DIR__ . '/../middleware/AuthMiddleware.php';
+require_once __DIR__ . '/../middleware/ValidationMiddleware.php';
 class EventRoutes {
     private $eventService;
     public function __construct() {
@@ -79,7 +80,8 @@ class EventRoutes {
     Flight::route('POST /events', function() use ($eventService) {
             try {
                 (new AuthMiddleware())->validate();
-                $data = Flight::request()->data->getData();
+                // Validate required fields
+                $data = ValidationMiddleware::validateRequest(['title', 'start_date', 'location_id']);
                 $data['organizer_id'] = Flight::get('user')->id;
                 $eventService->createEvent($data);
                 

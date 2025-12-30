@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../../services/LocationService.php';
 require_once __DIR__ . '/../middleware/AuthMiddleware.php';
+require_once __DIR__ . '/../middleware/ValidationMiddleware.php';
 class LocationRoutes {
     private $locationService;
     public function __construct() {
@@ -76,11 +77,14 @@ class LocationRoutes {
     Flight::route('POST /locations', function() use ($locationService) {
             (new AuthMiddleware())->validate('admin');
             try {
-                $data = Flight::request()->data->getData();
-                $locationService->createLocation($data);
+                // Server-side validation
+                $data = ValidationMiddleware::validateRequest(['name']);
+                $insertId = $locationService->createLocation($data);
+                $created = $locationService->getLocationById($insertId);
                 Flight::json([
                     'success' => true,
-                    'message' => 'Location created successfully'
+                    'message' => 'Location created successfully',
+                    'data' => $created
                 ], 201);
             } catch (Exception $e) {
                 $statusCode = strpos($e->getMessage(), 'already exists') !== false ? 409 : 400;
